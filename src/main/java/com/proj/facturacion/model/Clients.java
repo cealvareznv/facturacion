@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
 import java.lang.*;
 import java.util.*;
 
@@ -22,7 +24,6 @@ public class Clients {
     @Column(name = "docnumber", length = 11, unique = true) //Se establece un contrain unique
     private String dni;
     @OneToMany(mappedBy = "clients", fetch = FetchType.LAZY, cascade = CascadeType.ALL) //Se mapea la realción con el objeto Invoice
-    @JsonManagedReference
     @JsonIgnore
     private List<Invoice> invoices = new ArrayList<>();
 }

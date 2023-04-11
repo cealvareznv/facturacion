@@ -1,10 +1,16 @@
 package com.proj.facturacion.service;
 
+import com.proj.facturacion.model.Clients;
 import com.proj.facturacion.model.Invoice;
+import com.proj.facturacion.model.InvoiceDAO;
+import com.proj.facturacion.model.Products;
+import com.proj.facturacion.repository.ClientsRepository;
 import com.proj.facturacion.repository.InvoiceRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -23,6 +29,20 @@ public class InvoiceService {
             log.info("getInvoiceById -> Se obtiene la factura con el id: " + id);
             return (invoiceOptional.get());
         }
+    }
+
+    public List<Invoice> getAllInvoices(){
+        log.info("getAllInvoices -> Se obtienen todas las facturas.");
+        return(this.invoiceRepository.findAll());
+    }
+
+    public Invoice saveNewInvoice(InvoiceDAO newInvoice) {
+        Invoice objInvoice = new Invoice();
+        objInvoice.setClients(newInvoice.getClients());
+        objInvoice.setFec_created(newInvoice.getFec_created());
+        objInvoice.setTotal(newInvoice.getTotal());
+        log.info("saveNewInvoice -> Nueva Factura ingresada a la BBDD.");
+        return (this.invoiceRepository.saveAndFlush(objInvoice));
     }
 
 }

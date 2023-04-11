@@ -1,9 +1,12 @@
 package com.proj.facturacion.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
 import java.util.*;
 import java.lang.*;
 
@@ -15,13 +18,13 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY) //Se establece la clave primaria
     private Long id;
     @Column(name = "created_at")
-    private Date fec_created;
+    private String fec_created;
     private Double total;
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "client_id", nullable = false) //Se establece la relación con el objeto Clients
-    @JsonBackReference
+    @ManyToOne (fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "client_id") //Se establece la relación con el objeto Clients
+    @JsonIgnore
     private Clients clients;
     @OneToMany(mappedBy = "invoice",fetch = FetchType.LAZY, cascade = CascadeType.ALL) //Se establece la relación con el objeto InvoiceDetails
-    @JsonManagedReference
+    @JsonIgnore
     private List<InvoiceDetails> invoiceDetails;
 }
