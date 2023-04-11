@@ -1,7 +1,7 @@
 package com.proj.facturacion.controller;
 
-import com.proj.facturacion.model.Products;
-import com.proj.facturacion.service.ProductsService;
+import com.proj.facturacion.model.Product;
+import com.proj.facturacion.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,30 +13,30 @@ import java.util.List;
 @RequestMapping(path = "api/products")
 public class ProductsController {
     @Autowired
-    public ProductsService productsService;
+    public ProductService productService;
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<Products> findById(@PathVariable Long id) throws Exception{
-        return (new ResponseEntity<>(this.productsService.getProductsById(id), HttpStatus.OK));
+    public ResponseEntity<Product> findById(@PathVariable Long id) throws Exception{
+        return (new ResponseEntity<>(this.productService.getProductById(id), HttpStatus.OK));
     }
 
     @GetMapping(path = "/")
-    public ResponseEntity<List<Products>> findAll() {
-        return (new ResponseEntity<>(this.productsService.getAllProducts(),HttpStatus.OK));
+    public ResponseEntity<List<Product>> findAll() {
+        return (new ResponseEntity<>(this.productService.getAllProducts(),HttpStatus.OK));
     }
 
     @PostMapping(path = "/")
-    public ResponseEntity<Products> saveNewProducts(@RequestBody Products product) throws Exception {
-        return(new ResponseEntity<>(this.productsService.saveNewProducts(product), HttpStatus.OK));
+    public ResponseEntity<Product> saveNewProducts(@RequestBody Product product) throws Exception {
+        return(new ResponseEntity<>(this.productService.saveNewProduct(product), HttpStatus.OK));
     }
 
     @PutMapping(path = "/{id}")
-    public ResponseEntity<Products> updateProductsById(@RequestBody Products product, @PathVariable Long id) throws Exception {
-        return (new ResponseEntity<>(this.productsService.upgradeProductsById(product,id), HttpStatus.OK));
+    public ResponseEntity<Product> updateProductsById(@RequestBody Product product, @PathVariable Long id) throws Exception {
+        return (new ResponseEntity<>(this.productService.upgradeProductById(product,id), HttpStatus.OK));
     }
 
     @DeleteMapping(path = "/{id}")
-    public Boolean deleteProductsById(@PathVariable Long id) throws Exception {
-        return (this.productsService.deleteProductsById(id));
+    public Boolean deleteProductById(@PathVariable Long id) throws Exception {
+        return (this.productService.deleteProductById(id));
     }
 }

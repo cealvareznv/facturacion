@@ -1,25 +1,30 @@
 package com.proj.facturacion.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "invoice_details")
 public class InvoiceDetails {
+    //Se establece la clave primaria
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //Se establece la clave primaria
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "invoice_detail_id")
     private Long invoiceDetailId;
     private Integer amoun;
     private Double price;
-    @ManyToOne
-    @JoinColumn(name = "product_id") //Se establece la relación con el objeto Products
-    @JsonBackReference
-    private Products products;
-    @ManyToOne
-    @JoinColumn(name = "invoice_id") //Se establece la relación con el objeto Invoice
-    @JsonBackReference
+    //Se establece la relación con el objeto Product
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "product_id")
+    @JsonIgnore
+    private Product product;
+    //Se establece la relación con el objeto Invoice
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "invoice_id")
+    @JsonIgnore
     private Invoice invoice;
 }
