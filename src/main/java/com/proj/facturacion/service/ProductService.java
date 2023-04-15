@@ -81,7 +81,7 @@ public class ProductService {
     }
 
     public Boolean deleteProductById(Long id) throws Exception {
-        Boolean deleteProducts = false;
+        Boolean deleteProduct = false;
         if(id <= 0) { throw new Exception("upgradeProductById -> El id del producto no existe en la BBDD."); }
         Optional<Product> productsOptional = this.productRepository.findById(id);
         if(productsOptional.isEmpty()) {
@@ -91,8 +91,8 @@ public class ProductService {
             log.info("upgradeProductById -> El producto con Id: " + existProduct.getId() + " descripcion: " +
                     existProduct.getDescription() + " codigo: " + existProduct.getCode() + " fue borrado de la BBDD.");
             this.productRepository.delete(existProduct);
-            deleteProducts = true;
+            deleteProduct = true;
         }
-        return (deleteProducts);
+        return (deleteProduct);
     }
 }

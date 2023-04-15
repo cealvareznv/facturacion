@@ -15,7 +15,7 @@ public class ClientController {
     public ClientService clientService;
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<Client> findById(@PathVariable Long id) throws Exception{
+    public ResponseEntity<Client> findById(@PathVariable Long id) {
         return (new ResponseEntity<>(this.clientService.getClientById(id), HttpStatus.OK));
     }
 
@@ -35,7 +35,7 @@ public class ClientController {
     }
 
     @DeleteMapping(path = "/{id}")
-    public Boolean deleteClientsById(@PathVariable Long id) throws Exception {
-        return (this.clientService.deleteClientById(id));
+    public void deleteClientsById(@PathVariable Long id) throws Exception {
+        this.clientService.deleteClientById(id);
     }
 }

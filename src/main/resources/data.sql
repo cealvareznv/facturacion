@@ -1,14 +1,14 @@
 --Datos a ingresar a la tabla clientes
-INSERT INTO clients(name,lastname,docnumber) VALUES ('JUAN','GALINDEZ','35.895.560');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('AQUILES','LINARES','23.235.423');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('PEDRO','BAZAN','40.952.650');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('EMMANUEL','LOPEZ','58.621.471');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('RAFAEL','RODRIGUEZ','93.561.234');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('CARLOS','BRITO','96.568.231');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('JULIETA','GARCIA','23.512.654');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('LAURA','MARTINEZ','81.544.670');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('MARIA','VILLAREAL','88.888.891');
-INSERT INTO clients(name,lastname,docnumber) VALUES ('FRANCISCA','GORZETTI','81.544.671');
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('JUAN','GALINDEZ','35.895.560',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('AQUILES','LINARES','23.235.423',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('PEDRO','BAZAN','40.952.650',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('EMMANUEL','LOPEZ','58.621.471',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('RAFAEL','RODRIGUEZ','93.561.234',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('CARLOS','BRITO','96.568.231',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('JULIETA','GARCIA','23.512.654',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('LAURA','MARTINEZ','81.544.670',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('MARIA','VILLAREAL','88.888.891',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('FRANCISCA','GORZETTI','81.544.671',FALSE);
 
 --Datos a ingresar a la tabla productos
 INSERT INTO products(description,code,stock,price) VALUES ('Mate Acero Termico + Bombilla Inoxidable','K10001',10,8250.00);

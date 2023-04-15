@@ -5,6 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+//Clase que permite interacturar con la entidad InvoiceDetails para manejar datos en el motodo POST
 public class InvoiceDetailsDAO {
     private Long invoiceDetailId;
     private Integer amoun;

@@ -4,6 +4,7 @@ CREATE TABLE clients(
   name VARCHAR(75) NOT NULL,
   lastname VARCHAR(75) NOT NULL,
   docnumber VARCHAR(11) NOT NULL,
+  deleted BIT NOT NULL,
   PRIMARY KEY (id),
   CONSTRAINT UC_Client UNIQUE(docnumber)
 );

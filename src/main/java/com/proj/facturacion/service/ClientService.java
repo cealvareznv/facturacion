@@ -1,9 +1,16 @@
 package com.proj.facturacion.service;
 
+import com.proj.facturacion.exception.UpdateClientExistsException;
 import com.proj.facturacion.model.Client;
 import com.proj.facturacion.repository.ClientRepository;
+import com.proj.facturacion.validator.ClientValidator;
+import com.proj.facturacion.validator.GlobalValidator;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
@@ -12,84 +19,71 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ClientService {
-    final int lenghtDocNumber = 8;
     @Autowired
     public ClientRepository clientRepository;
+    @Autowired
+    private EntityManager entityManager;
 
-    public Client getClientById(Long id)throws Exception{
-        if(id <= 0) {throw new Exception("getClientById -> El id del cliente no existe en la BBDD.");}
+    public Client getClientById(Long id) throws IllegalArgumentException{
+        ClientValidator.validateIdClient(id, GlobalValidator.getMethodName());
+        log.info(GlobalValidator.getMethodName() + " -> Obteniendo Cliente con el id: " + id);
         Optional<Client> clientOptional = this.clientRepository.findById(id);
         if(clientOptional.isEmpty()){
-            log.info("getClientById -> El id del cliente no existe en la BBDD.");
-            throw new Exception("getClientById -> El id del cliente no existe en la BBDD.");
-        }else{
-            Client objClient = clientOptional.get();
-            log.info("getClientById -> Se obtiene el cliente con el id: " + id);
-            return (objClient);
+            log.error(GlobalValidator.getMethodName() + " -> El id del cliente no existe en la BBDD.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El id del cliente no existe en la BBDD.");
         }
+        return (clientOptional.get());
     }
 
     public List<Client> getAllClients(){
-        log.info("getAllClients -> Se obtienen todos los clientes");
+        log.info(GlobalValidator.getMethodName() + " -> Se obtienen todos los clientes de la BBDD.");
         return(this.clientRepository.findAll());
     }
 
-    public Client saveNewClient(Client newClient) throws Exception {
-        Optional<Client> clientOptional = this.clientRepository.findByDni(newClient.getDni());
-        if (clientOptional.isPresent()) {
-            log.info("getClientById -> El numero de documento " + newClient.getDni() + " ya existe en la BBDD y pertene a: "  +
-                    newClient.getApellido() + " " + newClient.getNombre());
-            throw new Exception("getClientById -> El numero de documento " + newClient.getDni() +" ya existe en la BBDD.");
-        } else {
-            if(newClient.getDni().length() < lenghtDocNumber) {
-                log.info("getClientById -> El numero de documento " + newClient + " no es valido.");
-                throw new Exception("getClientById -> El numero de documento no es valido.");
-            } else {
-                log.info("getClientById -> Cliente " + newClient.getNombre() + " " + newClient.getApellido() + " con DNI: "
-                        + newClient.getDni() + " se ingresa a la BBDD.");
-                return (this.clientRepository.saveAndFlush(newClient));
-            }
+    public Client saveNewClient(Client newClient) throws IllegalArgumentException, UpdateClientExistsException {
+        ClientValidator.validateClient(newClient, GlobalValidator.getMethodName());
+        if(this.clientRepository.existsByDniAndDeleted(newClient.getDni(),true)){
+            Session session = entityManager.unwrap(Session.class);
+            Filter filter = session.enableFilter("deletedClientFilter");
+            filter.setParameter("isDeleted", true);
+            this.clientRepository.updateClientDeletedStatusForDni(false, newClient.getDni());
+            session.disableFilter("deletedClientFilter");
+            log.info(GlobalValidator.getMethodName() + " -> El cliente con dni: " + newClient.getDni() + " se ingresa a la BBDD.");
+            throw new UpdateClientExistsException(GlobalValidator.getMethodName() + " -> El cliente con dni: " + newClient.getDni() + " se ingresa a la BBDD.");
         }
+        if(this.clientRepository.existsByDni(newClient.getDni())){
+            log.info(GlobalValidator.getMethodName() + " -> El cliente con dni: " + newClient.getDni() + " ya existe en la BBDD");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El cliente con dni: " + newClient.getDni() +" ya existe en la BBDD.");
+        }
+        log.info(GlobalValidator.getMethodName() + " -> El cliente con dni: " + newClient.getDni() + " se ingresa a la BBDD.");
+        return (clientRepository.saveAndFlush(newClient));
     }
 
-    public Client upgradeClientById(Client newClient, Long id) throws Exception {
-        if(id <= 0){ throw new Exception("upgradeClientById -> El id del cliente no existe en la BBDD."); }
-        if(Objects.isNull(newClient.getNombre()) || "".equalsIgnoreCase(newClient.getNombre())){
-            throw new Exception("upgradeClientById -> El nombre del cliente no es valido.");
+    public Client upgradeClientById(Client newClient, Long id) {
+        ClientValidator.validateIdClient(id, GlobalValidator.getMethodName());
+        ClientValidator.validateClient(newClient, GlobalValidator.getMethodName());
+        Optional<Client> clientOptional = this.clientRepository.findByIdAndDni(id, newClient.getDni());
+        if(clientOptional.isEmpty()){
+            log.error(GlobalValidator.getMethodName() + " -> El cliente con el id: " + id + " y dni: " + newClient.getDni()+ " no existe en la BBDD.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El cliente con el id: " + id + " y dni: " + newClient.getDni()+ " no existe en la BBDD.");
         }
-        if(Objects.isNull(newClient.getApellido()) || "".equalsIgnoreCase(newClient.getApellido())){
-            throw new Exception("upgradeClientById -> El apellido del cliente no es valido.");
-        }
-        if(Objects.isNull(newClient.getDni()) || "".equalsIgnoreCase(newClient.getDni())){
-            throw new Exception("upgradeClientById -> El cliente no tiene un numero de documento valido.");
-        }
-        Optional<Client> clientOptional = this.clientRepository.findById(id);
-        if(clientOptional.isEmpty()) {
-            log.info("upgradeClientById -> El cliente no existe en la BBDD.");
-            throw new Exception("upgradeClientById -> El cliente no existe en la BBDD.");
-        }else{
-            log.info("upgradeClientById -> Se actualizan los datos del cliente con Id: " + id);
-            Client existClient = clientOptional.get();
-            existClient.setNombre(newClient.getNombre());
-            existClient.setApellido(newClient.getApellido());
-            existClient.setDni(newClient.getDni());
-            return(this.clientRepository.saveAndFlush(existClient));
-        }
+        Client existClient = clientOptional.get();
+        existClient.setNombre(newClient.getNombre());
+        existClient.setApellido(newClient.getApellido());
+        existClient.setDni(newClient.getDni());
+        log.info(GlobalValidator.getMethodName() + " -> Se actualizan los datos del cliente con Id: " + id);
+        return (this.clientRepository.saveAndFlush(existClient));
     }
 
-    public Boolean deleteClientById(Long id) throws Exception {
-        Boolean deleteClient = false;
-        if(id <= 0) { throw new Exception("deleteClientById -> El id del cliente no existe en la BBDD."); }
+    public void deleteClientById(Long id) throws IllegalArgumentException {
+        ClientValidator.validateIdClient(id, GlobalValidator.getMethodName());
         Optional<Client> clientOptional = this.clientRepository.findById(id);
         if(clientOptional.isEmpty()) {
-            log.info("deleteClientById -> El id" + id + " del cliente no existe en la BBDD.");
-        }else {
-            Client existClient = clientOptional.get();
-            log.info("deleteClientById -> El cliente con Id: " +existClient.getId() + " nombre: " +
-                    existClient.getNombre() + " apellido: " + existClient.getApellido() + " fue borrado de la BBDD.");
-            this.clientRepository.delete(existClient);
-            deleteClient = true;
+            log.error(GlobalValidator.getMethodName() + " -> El id: " + id + " del cliente no existe en la BBDD.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El id" + id + " del cliente no existe en la BBDD.");
         }
-        return (deleteClient);
+        Client existClient = clientOptional.get();
+        log.info(GlobalValidator.getMethodName() + " -> El cliente con id: " + existClient.getId() + " y dni: " + existClient.getDni() +" fue borrado de la BBDD.");
+        this.clientRepository.deleteById(id);
     }
 }
