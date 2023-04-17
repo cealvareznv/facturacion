@@ -1,10 +1,13 @@
 package com.proj.facturacion.controller;
 
 import com.proj.facturacion.model.Client;
+import com.proj.facturacion.model.ClientDTO;
 import com.proj.facturacion.service.ClientService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -15,23 +18,23 @@ public class ClientController {
     public ClientService clientService;
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<Client> findById(@PathVariable Long id) {
+    public ResponseEntity<ClientDTO> findById(@PathVariable Long id){
         return (new ResponseEntity<>(this.clientService.getClientById(id), HttpStatus.OK));
     }
 
     @GetMapping(path = "/")
-    public ResponseEntity<List<Client>> findAll() {
+    public ResponseEntity<List<ClientDTO>> findAll() {
         return (new ResponseEntity<>(this.clientService.getAllClients(),HttpStatus.OK));
     }
 
     @PostMapping(path = "/")
-    public ResponseEntity<Client> saveNewClient(@RequestBody Client client) throws Exception {
-        return(new ResponseEntity<>(this.clientService.saveNewClient(client), HttpStatus.OK));
+    public ResponseEntity<ClientDTO> saveNewClient(@Valid @RequestBody ClientDTO clientDTO) {
+        return (new ResponseEntity<>(this.clientService.saveNewClient(clientDTO), HttpStatus.OK));
     }
 
     @PutMapping(path = "/{id}")
-    public ResponseEntity<Client> updateClientsById(@RequestBody Client client, @PathVariable Long id) throws Exception {
-        return (new ResponseEntity<>(this.clientService.upgradeClientById(client, id), HttpStatus.OK));
+    public ResponseEntity<ClientDTO> updateClientsById(@RequestBody ClientDTO clientDTO, @PathVariable Long id) {
+        return (new ResponseEntity<>(this.clientService.upgradeClientById(clientDTO, id), HttpStatus.OK));
     }
 
     @DeleteMapping(path = "/{id}")

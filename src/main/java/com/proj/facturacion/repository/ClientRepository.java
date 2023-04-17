@@ -8,14 +8,19 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface ClientRepository extends JpaRepository<Client,Long> {
     Optional<Client> findByIdAndDni(Long id, String docnumber);
     boolean existsByDni(String docnumber);
-    boolean existsByDniAndDeleted(String docnumber, boolean deleted);
+    boolean existsByDniAndDeletedTrue(String docnumber);
+    List<Client> findByDeletedFalse();
+    @Query(value = "SELECT MAX(c.id) FROM clients c", nativeQuery = true)
+    Long getLastById();
+    Long getIdByDni(String docnumber);
     @Modifying
     @Transactional
     @Query(value = "UPDATE clients SET deleted = ? WHERE docnumber = ?", nativeQuery = true)
-    void updateClientDeletedStatusForDni(boolean status, String dni);
+    void updateClientDeletedStatusForDni(boolean status, String docnumber);
 }
