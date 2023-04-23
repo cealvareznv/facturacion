@@ -21,12 +21,11 @@ public class Invoice {
     private String fec_created;
     private Double total;
     //Se establece la relación con el objeto Clients
-    @ManyToOne (fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "client_id")
-    @JsonIgnore
+    //@JsonIgnore
     private Client client;
     //Se establece la relación con el objeto InvoiceDetails a través del atributo invoice
-    @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JsonIgnore
+    @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<InvoiceDetails> invoiceDetails;
 }

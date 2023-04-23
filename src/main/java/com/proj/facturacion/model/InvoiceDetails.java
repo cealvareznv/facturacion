@@ -18,12 +18,12 @@ public class InvoiceDetails {
     private Integer amoun;
     private Double price;
     //Se establece la relación con el objeto Product
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "product_id")
     @JsonIgnore
     private Product product;
     //Se establece la relación con el objeto Invoice
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "invoice_id")
     @JsonIgnore
     private Invoice invoice;

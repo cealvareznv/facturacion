@@ -1,7 +1,7 @@
 package com.proj.facturacion.service;
 
 import com.proj.facturacion.model.InvoiceDetails;
-import com.proj.facturacion.model.InvoiceDetailsDAO;
+import com.proj.facturacion.model.InvoiceDetailsDTO;
 import com.proj.facturacion.repository.InvoiceDetailsRepository;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -30,12 +30,12 @@ public class InvoiceDetailsService {
         log.info("getAllInvoicesDetails -> Se obtienen todos los detalles de las facturas.");
         return(this.invoiceDetailsRepository.findAll());
     }
-    public InvoiceDetails saveNewInvoiceDetails(@NonNull InvoiceDetailsDAO newInvoiceDetails) {
+    public InvoiceDetails saveNewInvoiceDetails(@NonNull InvoiceDetailsDTO newInvoiceDetails) {
         InvoiceDetails objInvoiceDetails = new InvoiceDetails();
         objInvoiceDetails.setAmoun(newInvoiceDetails.getAmoun());
         objInvoiceDetails.setPrice(newInvoiceDetails.getPrice());
         objInvoiceDetails.setProduct(newInvoiceDetails.getProduct());
-        objInvoiceDetails.setInvoice(newInvoiceDetails.getInvoice());
+        //objInvoiceDetails.setInvoice(newInvoiceDetails.getInvoice());
         log.info("saveNewInvoiceDetails -> Detalle de la factura agregado a la BBDD.");
         return (this.invoiceDetailsRepository.saveAndFlush(objInvoiceDetails));
     }

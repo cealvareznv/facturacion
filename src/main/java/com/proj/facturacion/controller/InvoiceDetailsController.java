@@ -1,9 +1,7 @@
 package com.proj.facturacion.controller;
 
-import com.proj.facturacion.model.Invoice;
-import com.proj.facturacion.model.InvoiceDAO;
 import com.proj.facturacion.model.InvoiceDetails;
-import com.proj.facturacion.model.InvoiceDetailsDAO;
+import com.proj.facturacion.model.InvoiceDetailsDTO;
 import com.proj.facturacion.service.InvoiceDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,7 +27,7 @@ public class InvoiceDetailsController {
     }
 
     @PostMapping(path = "/")
-    public ResponseEntity<InvoiceDetails> saveNewInvoice(@RequestBody InvoiceDetailsDAO invoiceDetails) {
+    public ResponseEntity<InvoiceDetails> saveNewInvoice(@RequestBody InvoiceDetailsDTO invoiceDetails) {
         return(new ResponseEntity<>(this.invoiceDetailsService.saveNewInvoiceDetails(invoiceDetails), HttpStatus.OK));
     }
 }

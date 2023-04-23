@@ -34,7 +34,7 @@ public class Client {
     @JsonIgnore
     private boolean deleted = Boolean.FALSE;
     //Se mapea la relación con el objeto Invoice a través del atributo clients
-    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @OneToMany(mappedBy = "client")
     @JsonIgnore
     private List<Invoice> invoices = new ArrayList<>();
 }
