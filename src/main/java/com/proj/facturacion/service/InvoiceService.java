@@ -1,9 +1,6 @@
 package com.proj.facturacion.service;
 
-import com.proj.facturacion.model.Invoice;
-import com.proj.facturacion.model.InvoiceDTO;
-import com.proj.facturacion.model.InvoiceDetails;
-import com.proj.facturacion.model.InvoiceDetailsDTO;
+import com.proj.facturacion.model.*;
 import com.proj.facturacion.repository.ClientRepository;
 import com.proj.facturacion.repository.InvoiceRepository;
 import com.proj.facturacion.repository.ProductRepository;
@@ -11,16 +8,14 @@ import com.proj.facturacion.validator.GlobalValidator;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.lang.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.lang.*;
 import java.util.*;
 
 @Slf4j
@@ -52,7 +47,12 @@ public class InvoiceService {
             invoiceDetailsDTO.setInvoiceDetailId(invoice.getInvoiceDetails().get(index).getInvoiceDetailId());
             invoiceDetailsDTO.setPrice(invoice.getInvoiceDetails().get(index).getPrice());
             invoiceDetailsDTO.setAmoun(invoice.getInvoiceDetails().get(index).getAmoun());
-            invoiceDetailsDTO.setProduct(invoice.getInvoiceDetails().get(index).getProduct());
+            ProductDTO productDTO = new ProductDTO();
+            productDTO.setId(invoice.getInvoiceDetails().get(index).getProduct().getId());
+            productDTO.setPrice(invoice.getInvoiceDetails().get(index).getProduct().getPrice());
+            productDTO.setCode(invoice.getInvoiceDetails().get(index).getProduct().getCode());
+            productDTO.setDescription(invoice.getInvoiceDetails().get(index).getProduct().getDescription());
+            invoiceDetailsDTO.setProductDTO(productDTO);
             invoiceDetailsDTOList.add(index,invoiceDetailsDTO);
         }
         invoiceDTO.setInvoiceDetailsDTO(invoiceDetailsDTOList);
@@ -71,13 +71,18 @@ public class InvoiceService {
                 invoiceDTO.setFec_created(invoiceList.get(index).getFec_created());
                 invoiceDTO.setTotal(invoiceList.get(index).getTotal());
                 List<InvoiceDetailsDTO> invoiceDetailsDTOList = new ArrayList<>();
-                for (int indexD = 0; indexD < invoiceList.get(index).getInvoiceDetails().size(); indexD++) {
+                for (int indexDetails = 0; indexDetails < invoiceList.get(index).getInvoiceDetails().size(); indexDetails++) {
                     InvoiceDetailsDTO invoiceDetailsDTO = new InvoiceDetailsDTO();
-                    invoiceDetailsDTO.setInvoiceDetailId(invoiceList.get(index).getInvoiceDetails().get(indexD).getInvoiceDetailId());
-                    invoiceDetailsDTO.setPrice(invoiceList.get(index).getInvoiceDetails().get(indexD).getPrice());
-                    invoiceDetailsDTO.setAmoun(invoiceList.get(index).getInvoiceDetails().get(indexD).getAmoun());
-                    invoiceDetailsDTO.setProduct(invoiceList.get(index).getInvoiceDetails().get(indexD).getProduct());
-                    invoiceDetailsDTOList.add(indexD,invoiceDetailsDTO);
+                    invoiceDetailsDTO.setInvoiceDetailId(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getInvoiceDetailId());
+                    invoiceDetailsDTO.setPrice(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getPrice());
+                    invoiceDetailsDTO.setAmoun(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getAmoun());
+                    ProductDTO productDTO = new ProductDTO();
+                    productDTO.setId(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getProduct().getId());
+                    productDTO.setPrice(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getProduct().getPrice());
+                    productDTO.setCode(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getProduct().getCode());
+                    productDTO.setDescription(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getProduct().getDescription());
+                    invoiceDetailsDTO.setProductDTO(productDTO);
+                    invoiceDetailsDTOList.add(indexDetails,invoiceDetailsDTO);
                 }
                 invoiceDTO.setInvoiceDetailsDTO(invoiceDetailsDTOList);
                 invoiceDTOList.add(index,invoiceDTO);
@@ -87,48 +92,88 @@ public class InvoiceService {
         return(invoiceDTOList);
     }
 
-    public Invoice saveNewInvoice(@NonNull InvoiceDTO newInvoiceDTO) {
-        if (!clientRepository.existsByDni(newInvoiceDTO.getClient().getDni())) {
-            log.info(GlobalValidator.getMethodName() + " -> Factura no valida, cliente no existe en el BBDD.");
-            throw new IllegalArgumentException(GlobalValidator.getMethodName() + "-> Factura no valida, cliente no existe en el BBDD.");
-        }
+    public InvoiceDTO saveNewInvoice(@NonNull InvoiceDTO newInvoiceDTO) {
+        //Hacer: Se tiene que validad que el ID del cleinte no sea nulo o no exista por una anotacion
+        validateInvoiceDTOClient(newInvoiceDTO);
+        //Se valida que la factura tenga detalles de la compra
         if(newInvoiceDTO.getInvoiceDetailsDTO().isEmpty()){
             log.info(GlobalValidator.getMethodName() + " -> Factura no valida, no tiene detalle.");
             throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Factura no valida, no tiene detalle.");
         }
-        newInvoiceDTO.setFec_created(getDateNow());
         Double calculoTotal = 0.0;
-        for(int index=0; index < newInvoiceDTO.getInvoiceDetailsDTO().size();index++){
-            Long productId = newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProduct().getId();
+        Invoice invoice = new Invoice();
+        List<InvoiceDetails> invoiceDetailsList = new ArrayList<>();
+        for(int index=0;index < newInvoiceDTO.getInvoiceDetailsDTO().size();index++){
+            //Se calculan los precios del detalle de productos en la factura y se actualiza el DTO
+            Long productId = newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getId();
+            Integer productAmoun = newInvoiceDTO.getInvoiceDetailsDTO().get(index).getAmoun();
             Double priceProduct = this.productRepository.getPriceById(productId);
-            Double calculoPrice = priceProduct * newInvoiceDTO.getInvoiceDetailsDTO().get(index).getAmoun();
+            Double calculoPrice = priceProduct * productAmoun;
             newInvoiceDTO.getInvoiceDetailsDTO().get(index).setPrice(calculoPrice);
             calculoTotal += calculoPrice;
-        }
-        newInvoiceDTO.setTotal(calculoTotal);
-        Invoice invoice = new Invoice();
-        invoice.setClient(newInvoiceDTO.getClient());
-        invoice.setFec_created(newInvoiceDTO.getFec_created());
-        invoice.setTotal(newInvoiceDTO.getTotal());
-        List<InvoiceDetails> invoiceDetailsList = new ArrayList<>();
-        for(int index=0; index < newInvoiceDTO.getInvoiceDetailsDTO().size();index++) {
+            //Se asignan los valores del detalle de la factura desde el DTO a la Entidad InvoiceDetails
             InvoiceDetails invoiceDetails = new InvoiceDetails();
-            Long productId = newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProduct().getId();
-            Integer productAmoun = newInvoiceDTO.getInvoiceDetailsDTO().get(index).getAmoun();
-            invoiceDetails.setProduct(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProduct());
+            Product product = new Product();
+            product.setId(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getId());
+            product.setCode(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getCode());
+            product.setPrice(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getPrice());
+            product.setDescription(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getDescription());
+            invoiceDetails.setProduct(product);
             invoiceDetails.setPrice(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getPrice());
             invoiceDetails.setAmoun(productAmoun);
+            invoiceDetails.setInvoice(invoice);
+            //Se verifica el stock y se actualiza la disponibilidad de los productos
             Integer currentStock = this.productRepository.getStockById(productId);
+            if(currentStock <= 0 && currentStock < productAmoun){
+                log.info(GlobalValidator.getMethodName() + " -> Stock insuficiente. Stock: ");
+                throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Stock insuficiente.");
+            }
             currentStock -= productAmoun;
             invoiceDetailsList.add(index,invoiceDetails);
             this.productRepository.updateProductStockById(currentStock,productId);
         }
+        newInvoiceDTO.setTotal(calculoTotal);
+        newInvoiceDTO.setFec_created(getDateNow());
+        //Se asignan los valores de la factura desde el DTO a la Entidad Invoice
+        invoice.setClient(newInvoiceDTO.getClient());
+        invoice.setFec_created(newInvoiceDTO.getFec_created());
+        invoice.setTotal(newInvoiceDTO.getTotal());
         invoice.setInvoiceDetails(invoiceDetailsList);
+        //Se inserta la factura en la BBDD
         log.info(GlobalValidator.getMethodName() + " -> Factura ingresada a la BBDD.");
-        return (this.invoiceRepository.saveAndFlush(invoice));
+        this.invoiceRepository.saveAndFlush(invoice);
+        //Se actualiza el DTO con la respuesta de la inserción de la factura en BBDD
+        newInvoiceDTO.setId(invoice.getId());
+        List<InvoiceDetailsDTO> invoiceDetailsDTOList = new ArrayList<>();
+        for(int index=0;index < invoiceDetailsList.size();index++) {
+            InvoiceDetailsDTO invoiceDetailsDTO = new InvoiceDetailsDTO();
+            invoiceDetailsDTO.setInvoiceDetailId(invoiceDetailsList.get(index).getInvoiceDetailId());
+            invoiceDetailsDTO.setAmoun(invoiceDetailsList.get(index).getAmoun());
+            invoiceDetailsDTO.setPrice(invoiceDetailsList.get(index).getPrice());
+            ProductDTO productDTO = new ProductDTO();
+            productDTO.setId(invoiceDetailsList.get(index).getProduct().getId());
+            productDTO.setPrice(invoiceDetailsList.get(index).getProduct().getPrice());
+            productDTO.setCode(invoiceDetailsList.get(index).getProduct().getCode());
+            productDTO.setDescription(invoiceDetailsList.get(index).getProduct().getDescription());
+            invoiceDetailsDTO.setProductDTO(productDTO);
+            invoiceDetailsDTOList.add(index,invoiceDetailsDTO);
+        }
+        newInvoiceDTO.setInvoiceDetailsDTO(invoiceDetailsDTOList);
+        return (newInvoiceDTO);
     }
 
-    public String getDateNow(){
+    private void validateInvoiceDTOClient(InvoiceDTO invoiceDTO){
+        Long clientId = invoiceDTO.getClient().getId();
+        Optional<Client> clientOptional = this.clientRepository.findById(clientId);
+        if(clientOptional.isPresent()){
+            Client client = clientOptional.get();
+            invoiceDTO.setClient(client);
+        }else{
+            log.info(GlobalValidator.getMethodName() + " -> Cliente no existe en el BBDD.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + "-> Cliente no existe en el BBDD.");
+        }
+    }
+    private String getDateNow(){
         RestTemplate restTemplate = new RestTemplate();
         String urlUTC = "http://worldclockapi.com/api/json/utc/now";
         Map<String, String> response;

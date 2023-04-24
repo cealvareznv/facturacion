@@ -3,8 +3,6 @@ package com.proj.facturacion.model;
 import com.proj.facturacion.constraint.ClientDniConstraint;
 import com.proj.facturacion.constraint.ClientNombreApellidoConstraint;
 
-import lombok.Getter;
-import lombok.Setter;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 

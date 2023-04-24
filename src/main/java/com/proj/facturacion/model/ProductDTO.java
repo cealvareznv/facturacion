@@ -1,23 +1,19 @@
 package com.proj.facturacion.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
-public class ProductDTO {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+//Clase que permite interacturar con la entidad Product para la transferencia de datos
+public class ProductDTO implements Serializable {
     private Long id;
     private String description;
     private String code;
     private Integer stock;
     private Double price;
-
-    @Override
-    public String toString() {
-        return "ProductDTO{" +
-                "description='" + description + '\'' +
-                ", code='" + code + '\'' +
-                ", price=" + price +
-                '}';
-    }
 }

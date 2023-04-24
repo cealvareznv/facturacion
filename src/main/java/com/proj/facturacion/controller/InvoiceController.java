@@ -16,7 +16,7 @@ public class InvoiceController {
     public InvoiceService invoiceService;
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<InvoiceDTO> findById(@PathVariable Long id) throws Exception{
+    public ResponseEntity<InvoiceDTO> findById(@PathVariable Long id) {
         return (new ResponseEntity<>(this.invoiceService.getInvoiceById(id), HttpStatus.OK));
     }
 
@@ -26,7 +26,7 @@ public class InvoiceController {
     }
 
     @PostMapping(path = "/")
-    public ResponseEntity<Invoice> saveNewInvoice(@RequestBody InvoiceDTO invoiceDTO) {
+    public ResponseEntity<InvoiceDTO> saveNewInvoice(@RequestBody InvoiceDTO invoiceDTO) {
         return(new ResponseEntity<>(this.invoiceService.saveNewInvoice(invoiceDTO), HttpStatus.OK));
     }
 }

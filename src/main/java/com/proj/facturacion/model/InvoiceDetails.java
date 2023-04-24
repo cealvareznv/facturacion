@@ -23,7 +23,7 @@ public class InvoiceDetails {
     @JsonIgnore
     private Product product;
     //Se establece la relación con el objeto Invoice
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "invoice_id")
     @JsonIgnore
     private Invoice invoice;
