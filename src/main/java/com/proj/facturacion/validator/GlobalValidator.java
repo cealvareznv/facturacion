@@ -2,6 +2,7 @@ package com.proj.facturacion.validator;
 
 import org.springframework.stereotype.Component;
 import java.lang.Thread;
+import java.util.List;
 
 @Component
 public class GlobalValidator {
@@ -10,15 +11,6 @@ public class GlobalValidator {
             return (Thread.currentThread().getStackTrace()[2].getMethodName());
         }else{
             return ("undefined");
-        }
-    }
-
-    public static Boolean isNumeric(String cadnumber){
-        try{
-            Integer.parseInt(cadnumber);
-            return (Boolean.TRUE);
-        }catch (NumberFormatException nfe){
-            return (Boolean.FALSE);
         }
     }
 }

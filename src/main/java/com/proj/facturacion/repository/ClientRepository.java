@@ -13,6 +13,7 @@ import java.util.List;
 @Repository
 public interface ClientRepository extends JpaRepository<Client,Long> {
     Optional<Client> findByIdAndDni(Long id, String docnumber);
+    Optional<Client> findByDni(String docnumber);
     boolean existsByDni(String docnumber);
     boolean existsByDniAndDeletedTrue(String docnumber);
     List<Client> findByDeletedFalse();

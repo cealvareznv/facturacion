@@ -93,86 +93,102 @@ public class InvoiceService {
     }
 
     public InvoiceDTO saveNewInvoice(@NonNull InvoiceDTO newInvoiceDTO) {
-        //Hacer: Se tiene que validad que el ID del cleinte no sea nulo o no exista por una anotacion
         validateInvoiceDTOClient(newInvoiceDTO);
-        //Se valida que la factura tenga detalles de la compra
-        if(newInvoiceDTO.getInvoiceDetailsDTO().isEmpty()){
-            log.info(GlobalValidator.getMethodName() + " -> Factura no valida, no tiene detalle.");
-            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Factura no valida, no tiene detalle.");
-        }
-        Double calculoTotal = 0.0;
-        Invoice invoice = new Invoice();
-        List<InvoiceDetails> invoiceDetailsList = new ArrayList<>();
-        for(int index=0;index < newInvoiceDTO.getInvoiceDetailsDTO().size();index++){
-            //Se calculan los precios del detalle de productos en la factura y se actualiza el DTO
-            Long productId = newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getId();
-            Integer productAmoun = newInvoiceDTO.getInvoiceDetailsDTO().get(index).getAmoun();
-            Double priceProduct = this.productRepository.getPriceById(productId);
-            Double calculoPrice = priceProduct * productAmoun;
-            newInvoiceDTO.getInvoiceDetailsDTO().get(index).setPrice(calculoPrice);
-            calculoTotal += calculoPrice;
-            //Se asignan los valores del detalle de la factura desde el DTO a la Entidad InvoiceDetails
-            InvoiceDetails invoiceDetails = new InvoiceDetails();
-            Product product = new Product();
-            product.setId(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getId());
-            product.setCode(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getCode());
-            product.setPrice(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getPrice());
-            product.setDescription(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getProductDTO().getDescription());
-            invoiceDetails.setProduct(product);
-            invoiceDetails.setPrice(newInvoiceDTO.getInvoiceDetailsDTO().get(index).getPrice());
-            invoiceDetails.setAmoun(productAmoun);
-            invoiceDetails.setInvoice(invoice);
-            //Se verifica el stock y se actualiza la disponibilidad de los productos
-            Integer currentStock = this.productRepository.getStockById(productId);
-            if(currentStock <= 0 && currentStock < productAmoun){
-                log.info(GlobalValidator.getMethodName() + " -> Stock insuficiente. Stock: ");
-                throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Stock insuficiente.");
-            }
-            currentStock -= productAmoun;
-            invoiceDetailsList.add(index,invoiceDetails);
-            this.productRepository.updateProductStockById(currentStock,productId);
-        }
-        newInvoiceDTO.setTotal(calculoTotal);
+        validateInvoiceDTOInvoiceDetails(newInvoiceDTO);
+        calculatePrice(newInvoiceDTO);
         newInvoiceDTO.setFec_created(getDateNow());
+        Invoice invoice = new Invoice();
         //Se asignan los valores de la factura desde el DTO a la Entidad Invoice
         invoice.setClient(newInvoiceDTO.getClient());
         invoice.setFec_created(newInvoiceDTO.getFec_created());
         invoice.setTotal(newInvoiceDTO.getTotal());
+        List<InvoiceDetails> invoiceDetailsList = new ArrayList<>();
+        copyFromDtoInvoiceDetailsToEntityInvoiceDetails(invoice,newInvoiceDTO.getInvoiceDetailsDTO(),invoiceDetailsList);
         invoice.setInvoiceDetails(invoiceDetailsList);
         //Se inserta la factura en la BBDD
         log.info(GlobalValidator.getMethodName() + " -> Factura ingresada a la BBDD.");
         this.invoiceRepository.saveAndFlush(invoice);
         //Se actualiza el DTO con la respuesta de la inserción de la factura en BBDD
         newInvoiceDTO.setId(invoice.getId());
-        List<InvoiceDetailsDTO> invoiceDetailsDTOList = new ArrayList<>();
-        for(int index=0;index < invoiceDetailsList.size();index++) {
-            InvoiceDetailsDTO invoiceDetailsDTO = new InvoiceDetailsDTO();
-            invoiceDetailsDTO.setInvoiceDetailId(invoiceDetailsList.get(index).getInvoiceDetailId());
-            invoiceDetailsDTO.setAmoun(invoiceDetailsList.get(index).getAmoun());
-            invoiceDetailsDTO.setPrice(invoiceDetailsList.get(index).getPrice());
-            ProductDTO productDTO = new ProductDTO();
-            productDTO.setId(invoiceDetailsList.get(index).getProduct().getId());
-            productDTO.setPrice(invoiceDetailsList.get(index).getProduct().getPrice());
-            productDTO.setCode(invoiceDetailsList.get(index).getProduct().getCode());
-            productDTO.setDescription(invoiceDetailsList.get(index).getProduct().getDescription());
-            invoiceDetailsDTO.setProductDTO(productDTO);
-            invoiceDetailsDTOList.add(index,invoiceDetailsDTO);
-        }
-        newInvoiceDTO.setInvoiceDetailsDTO(invoiceDetailsDTOList);
         return (newInvoiceDTO);
     }
 
     private void validateInvoiceDTOClient(InvoiceDTO invoiceDTO){
         Long clientId = invoiceDTO.getClient().getId();
-        Optional<Client> clientOptional = this.clientRepository.findById(clientId);
-        if(clientOptional.isPresent()){
-            Client client = clientOptional.get();
-            invoiceDTO.setClient(client);
-        }else{
-            log.info(GlobalValidator.getMethodName() + " -> Cliente no existe en el BBDD.");
-            throw new IllegalArgumentException(GlobalValidator.getMethodName() + "-> Cliente no existe en el BBDD.");
+        if (clientId == null) {
+            log.info(GlobalValidator.getMethodName() + " -> Id de cliente no valido. La factura no esta asociada a un cliente.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Id de cliente no valido. La factura no esta asociada a un cliente.");
+        }
+        if (clientId > 0) {
+            Optional<Client> clientOptional = this.clientRepository.findById(clientId);
+            if (clientOptional.isPresent()) {
+                Client client = clientOptional.get();
+                invoiceDTO.setClient(client);
+            }else{
+                log.info(GlobalValidator.getMethodName() + " -> Cliente no existe en el BBDD.");
+                throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Cliente no existe en el BBDD.");
+            }
         }
     }
+
+    private void validateInvoiceDTOInvoiceDetails(InvoiceDTO invoiceDTO){
+        List<InvoiceDetailsDTO> invoiceDetailsDTOList = invoiceDTO.getInvoiceDetailsDTO().stream().toList();
+        if(invoiceDetailsDTOList.isEmpty()){
+            log.info(GlobalValidator.getMethodName() + " -> Factura no valida, no tiene detalle.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Factura no valida, no tiene detalle.");
+        }
+        for(InvoiceDetailsDTO idDtoList: invoiceDetailsDTOList){
+            if (idDtoList.getAmoun() <= 0){
+                log.info(GlobalValidator.getMethodName() + " -> La cantidad del producto debe ser mayor que cero.");
+                throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> La cantidad del producto debe ser mayor que cero.");
+            }
+            if (idDtoList.getProductDTO().getId() <= 0){
+                log.info(GlobalValidator.getMethodName() + " -> Id del producto no valido. Producto no existente.");
+                throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Id del producto no valido. Producto no existente.");
+            }
+            Long productId = idDtoList.getProductDTO().getId();
+            Optional<Product> productOptional = this.productRepository.findById(productId);
+            if (productOptional.isPresent()){
+                Product product = productOptional.get();
+                ProductDTO productDTO = new ProductDTO();
+                productDTO.setId(product.getId());
+                productDTO.setCode(product.getCode());
+                productDTO.setDescription(product.getDescription());
+                productDTO.setPrice(product.getPrice());
+                productDTO.setStock(product.getStock());
+                idDtoList.setProductDTO(productDTO);
+            }
+        }
+    }
+
+    private void calculatePrice(InvoiceDTO invoiceDTO){
+        List<InvoiceDetailsDTO> invoiceDetailsDTOList = invoiceDTO.getInvoiceDetailsDTO().stream().toList();
+        Double calculoTotal = 0.0;
+        for(InvoiceDetailsDTO idDtoList: invoiceDetailsDTOList){
+            Double priceProduct = idDtoList.getProductDTO().getPrice();
+            Integer productAmoun = idDtoList.getAmoun();
+            //Se verifica la disponibilidad del producto en el stock
+            Integer currentStock = idDtoList.getProductDTO().getStock();
+            if((currentStock <= 0) && (currentStock < productAmoun)){
+                log.info(GlobalValidator.getMethodName() + " -> Stock insuficiente.");
+                throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> Stock insuficiente.");
+            }
+            //Se actualiza el stock del producto
+            currentStock -= productAmoun;
+            ProductDTO productDTO = idDtoList.getProductDTO();
+            productDTO.setStock(currentStock);
+            //Se actualiza el stock en BBDD del producto
+            this.productRepository.updateProductStockById(productDTO.getStock(), productDTO.getId());
+            //Se asigna el producto con sus atributos al objeto InvoiceDetails List
+            idDtoList.setProductDTO(productDTO);
+            //Se asigna el precio del producto al momento de la compra
+            idDtoList.setPrice(priceProduct);
+            //Se calcula el precio del producto por la cantidad solicitada, para realizar el calculo total de la factura
+            calculoTotal += (priceProduct * productAmoun);
+        }
+        invoiceDTO.setTotal(calculoTotal);
+    }
+
     private String getDateNow(){
         RestTemplate restTemplate = new RestTemplate();
         String urlUTC = "http://worldclockapi.com/api/json/utc/now";
@@ -194,6 +210,23 @@ public class InvoiceService {
         }catch (Exception exp){
             LocalDateTime now = LocalDateTime.now();
             return (now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
+    }
+
+    private void copyFromDtoInvoiceDetailsToEntityInvoiceDetails(Invoice invoice, List<InvoiceDetailsDTO> fromDtoList,List<InvoiceDetails> toEntityList){
+        for(InvoiceDetailsDTO invoiceDetailsDTO: fromDtoList){
+            InvoiceDetails invoiceDetails = new InvoiceDetails();
+            Product product = new Product();
+            product.setId(invoiceDetailsDTO.getProductDTO().getId());
+            product.setCode(invoiceDetailsDTO.getProductDTO().getCode());
+            product.setPrice(invoiceDetailsDTO.getProductDTO().getPrice());
+            product.setStock(invoiceDetailsDTO.getProductDTO().getStock());
+            product.setDescription(invoiceDetailsDTO.getProductDTO().getDescription());
+            invoiceDetails.setPrice(invoiceDetailsDTO.getPrice());
+            invoiceDetails.setAmoun(invoiceDetailsDTO.getAmoun());
+            invoiceDetails.setProduct(product);
+            invoiceDetails.setInvoice(invoice);
+            toEntityList.add(invoiceDetails);
         }
     }
 }
