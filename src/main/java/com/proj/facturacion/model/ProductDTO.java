@@ -1,5 +1,6 @@
 package com.proj.facturacion.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,7 @@ public class ProductDTO implements Serializable {
     private Long id;
     private String description;
     private String code;
+    @JsonIgnore
     private Integer stock;
     private Double price;
 }

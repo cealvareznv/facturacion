@@ -48,7 +48,6 @@ public class InvoiceService {
             invoiceDetailsDTO.setPrice(invoice.getInvoiceDetails().get(index).getPrice());
             invoiceDetailsDTO.setAmoun(invoice.getInvoiceDetails().get(index).getAmoun());
             ProductDTO productDTO = new ProductDTO();
-            productDTO.setId(invoice.getInvoiceDetails().get(index).getProduct().getId());
             productDTO.setPrice(invoice.getInvoiceDetails().get(index).getProduct().getPrice());
             productDTO.setCode(invoice.getInvoiceDetails().get(index).getProduct().getCode());
             productDTO.setDescription(invoice.getInvoiceDetails().get(index).getProduct().getDescription());
@@ -77,7 +76,6 @@ public class InvoiceService {
                     invoiceDetailsDTO.setPrice(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getPrice());
                     invoiceDetailsDTO.setAmoun(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getAmoun());
                     ProductDTO productDTO = new ProductDTO();
-                    productDTO.setId(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getProduct().getId());
                     productDTO.setPrice(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getProduct().getPrice());
                     productDTO.setCode(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getProduct().getCode());
                     productDTO.setDescription(invoiceList.get(index).getInvoiceDetails().get(indexDetails).getProduct().getDescription());
@@ -131,6 +129,7 @@ public class InvoiceService {
         }
     }
 
+    //Metodo para validar el DTO de Invoice e InvoiceDetails
     private void validateInvoiceDTOInvoiceDetails(InvoiceDTO invoiceDTO){
         List<InvoiceDetailsDTO> invoiceDetailsDTOList = invoiceDTO.getInvoiceDetailsDTO().stream().toList();
         if(invoiceDetailsDTOList.isEmpty()){
@@ -161,6 +160,7 @@ public class InvoiceService {
         }
     }
 
+    //Metodo para calcular los precios a reflejar en la factura y actualizar el stock de los productos dentro de la factura
     private void calculatePrice(InvoiceDTO invoiceDTO){
         List<InvoiceDetailsDTO> invoiceDetailsDTOList = invoiceDTO.getInvoiceDetailsDTO().stream().toList();
         Double calculoTotal = 0.0;
@@ -189,6 +189,8 @@ public class InvoiceService {
         invoiceDTO.setTotal(calculoTotal);
     }
 
+    //Metodo para obtener la fecha de la ejecución de la factura a través de un servicio REST o del servidor en caso
+    //de fallar el servicio REST
     private String getDateNow(){
         RestTemplate restTemplate = new RestTemplate();
         String urlUTC = "http://worldclockapi.com/api/json/utc/now";
@@ -213,6 +215,7 @@ public class InvoiceService {
         }
     }
 
+    //Metodo para copiar del DTO a la Entidad Invoice
     private void copyFromDtoInvoiceDetailsToEntityInvoiceDetails(Invoice invoice, List<InvoiceDetailsDTO> fromDtoList,List<InvoiceDetails> toEntityList){
         for(InvoiceDetailsDTO invoiceDetailsDTO: fromDtoList){
             InvoiceDetails invoiceDetails = new InvoiceDetails();

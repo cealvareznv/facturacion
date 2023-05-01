@@ -91,9 +91,13 @@ public class ClientService {
             throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El cliente con el id: " + id + " y dni: " + newClientDTO.getDni()+ " no existe en la BBDD.");
         }
         Client existClient = clientOptional.get();
-        existClient.setNombre(newClientDTO.getNombre());
-        existClient.setApellido(newClientDTO.getApellido());
-        existClient.setDni(newClientDTO.getDni());
+        newClientDTO.setId(existClient.getId());
+        if ((!newClientDTO.getNombre().isBlank()) && (!existClient.getNombre().equals(newClientDTO.getNombre()))){
+            existClient.setNombre(newClientDTO.getNombre());
+        }
+        if ((!newClientDTO.getApellido().isBlank()) && (!existClient.getApellido().equals(newClientDTO.getApellido()))){
+            existClient.setApellido(newClientDTO.getApellido());
+        }
         log.info(GlobalValidator.getMethodName() + " -> Se actualizan los datos del cliente con Id: " + id);
         this.clientRepository.saveAndFlush(existClient);
         return (newClientDTO);

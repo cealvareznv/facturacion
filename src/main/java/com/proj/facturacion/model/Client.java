@@ -2,7 +2,6 @@ package com.proj.facturacion.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,8 +13,8 @@ import java.util.*;
 @Setter
 @Entity
 @Table(name = "clients")
+//Anotación utilizada para hacer un soft delete en la Entidad Cliente
 @SQLDelete(sql="UPDATE clients SET deleted = true WHERE id=?")
-//@Where(clause = "deleted=false")
 @FilterDef(name = "deletedClientFilter", parameters = @ParamDef(name = "isDeleted", type = Boolean.class))
 @Filter(name = "deletedClientFilter", condition = "deleted = :isDeleted")
 public class Client {
