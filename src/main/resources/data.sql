@@ -1,5 +1,5 @@
 --Datos a ingresar a la tabla clientes
-INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('JUAN','GALINDEZ','35.895.560',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('JUAN','MARQUEZ','35.895.560',FALSE);
 INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('AQUILES','LINARES','23.235.423',FALSE);
 INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('PEDRO','BAZAN','40.952.650',FALSE);
 INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('EMMANUEL','LOPEZ','58.621.471',FALSE);
@@ -9,6 +9,7 @@ INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('JULIETA','GARCIA',
 INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('LAURA','MARTINEZ','81.544.670',FALSE);
 INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('MARIA','VILLAREAL','88.888.891',FALSE);
 INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('FRANCISCA','GORZETTI','81.544.671',FALSE);
+INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('LIONEL','SCALONNI','36.526.671',FALSE);
 
 --Datos a ingresar a la tabla productos
 INSERT INTO products(description,code,stock,price) VALUES ('Mate Acero Termico + Bombilla Inoxidable','K10001',10,8250.00);

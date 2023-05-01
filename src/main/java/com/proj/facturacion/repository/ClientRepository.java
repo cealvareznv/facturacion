@@ -18,6 +18,7 @@ public interface ClientRepository extends JpaRepository<Client,Long> {
     List<Client> findByDeletedFalse();
     @Query(value = "SELECT MAX(c.id) FROM clients c", nativeQuery = true)
     Long getLastById();
+    @Query(value = "SELECT c.id FROM clients c WHERE c.docnumber = ?", nativeQuery = true)
     Long getIdByDni(String docnumber);
     @Modifying
     @Transactional
