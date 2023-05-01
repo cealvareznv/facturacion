@@ -38,7 +38,7 @@ public class ClientController {
     }
 
     @DeleteMapping(path = "/{id}")
-    public void deleteClientsById(@PathVariable Long id) throws Exception {
+    public void deleteClientsById(@PathVariable Long id) {
         this.clientService.deleteClientById(id);
     }
 }

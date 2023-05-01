@@ -2,97 +2,78 @@ package com.proj.facturacion.service;
 
 import com.proj.facturacion.model.Product;
 import com.proj.facturacion.repository.ProductRepository;
+import com.proj.facturacion.validator.GlobalValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
 @Service
 public class ProductService {
-    final int lenghtCode = 4;
     @Autowired
     public ProductRepository productRepository;
 
-    public Product getProductById(Long id)throws Exception{
-        if(id <= 0) {throw new Exception("getProductById -> El id del producto no existe en la BBDD.");}
+    public Product getProductById(Long id)throws IllegalArgumentException{
+        if(id <= 0) {throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El id del producto no existe en la BBDD.");}
         Optional<Product> productOptional = this.productRepository.findById(id);
         if(productOptional.isEmpty()){
-            log.info("getProductById -> El id del producto no existe en la BBDD.");
-            throw new Exception("getProductById -> El id del producto no existe en la BBDD.");
-        }else{
-            log.info("getProductById -> Se obtiene el producto con el id: " + id);
-            return (productOptional.get());
+            log.info(GlobalValidator.getMethodName() + " -> El id del producto no existe en la BBDD.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El id del producto no existe en la BBDD.");
         }
+        log.info(GlobalValidator.getMethodName() + " -> Obteniendo producto con el id: " + id);
+        return (productOptional.get());
     }
 
     public List<Product> getAllProducts(){
-        log.info("getAllProducts -> Se obtienen todos los productos.");
+        log.info(GlobalValidator.getMethodName() + " -> Se obtienen todos los productos de la BBDD.");
         return(this.productRepository.findAll());
     }
 
-    public Product saveNewProduct(Product newProduct) throws Exception {
+    public Product saveNewProduct(Product newProduct) throws IllegalArgumentException {
         Optional<Product> productOptional = this.productRepository.findByCode(newProduct.getCode());
         if (productOptional.isPresent()) {
-            log.info("saveNewProduct -> El codigo " + newProduct.getCode() + " ya existe en la BBDD y pertene al producto: "  +
+            log.info(GlobalValidator.getMethodName() + " -> El codigo " + newProduct.getCode() + " ya existe en la BBDD y pertene al producto: "  +
                     newProduct.getDescription());
-            throw new Exception("saveNewProduct -> El codigo " + newProduct.getCode() +" ya existe en la BBDD.");
-        } else {
-            if(newProduct.getCode().length() < lenghtCode) {
-                log.info("saveNewProduct -> El codigo del producto " + newProduct + " no es valido.");
-                throw new Exception("saveNewProduct -> El codigo del producto no es valido.");
-            } else {
-                log.info("saveNewProduct -> Producto: " + newProduct.getDescription() + " se ingresa a la BBDD.");
-                return (this.productRepository.saveAndFlush(newProduct));
-            }
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El codigo " + newProduct.getCode() +" ya existe en la BBDD.");
         }
+        this.productRepository.saveAndFlush(newProduct);
+        log.info(GlobalValidator.getMethodName() + " -> Se ingreso el producto " + newProduct.getDescription() + " con id: " + newProduct.getId() + " a la BBDD.");
+        return (newProduct);
     }
 
-    public Product upgradeProductById(Product newProduct, Long id) throws Exception {
-        if(id <= 0){ throw new Exception("upgradeProductById -> El id del producto no existe en la BBDD."); }
-        if(Objects.isNull(newProduct.getCode()) || "".equalsIgnoreCase(newProduct.getCode())){
-            throw new Exception("upgradeProductById -> El codigo del producto no es valido.");
-        }
-        if(Objects.isNull(newProduct.getDescription()) || "".equalsIgnoreCase(newProduct.getDescription())){
-            throw new Exception("upgradeProductById -> La descripcion del producto no es valida.");
-        }
-        if(Objects.isNull(newProduct.getStock()) || (newProduct.getStock() <= 0)){
-            throw new Exception("upgradeProductById -> El producto no tiene stock.");
-        }
-        if(Objects.isNull(newProduct.getPrice()) || (newProduct.getPrice() <= 0)){
-            throw new Exception("upgradeProductById -> El precio del producto no es valido.");
-        }
-        Optional<Product> productOptional = this.productRepository.findByIdAndCode(id,newProduct.getCode());
+    public Product upgradeProductById(Product newProduct, Long id) throws IllegalArgumentException {
+        if(id <= 0){ throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El id del producto no existe en la BBDD."); }
+        Optional<Product> productOptional = this.productRepository.findByIdAndCode(id, newProduct.getCode());
         if(productOptional.isEmpty()) {
-            log.info("upgradeProductById -> El producto no existe en la BBDD.");
-            throw new Exception("upgradeProductById -> El producto no existe en la BBDD.");
-        }else{
-            log.info("upgradeProductById -> Se actualizan los datos del producto con Id: " + id +
-                    " y code: " + newProduct.getCode());
-            Product existProduct = productOptional.get();
-            existProduct.setCode(newProduct.getCode());
-            existProduct.setDescription(newProduct.getDescription());
-            existProduct.setStock(newProduct.getStock());
-            existProduct.setPrice(newProduct.getPrice());
-            return(this.productRepository.saveAndFlush(existProduct));
+            log.error(GlobalValidator.getMethodName() + " -> El producto no existe en la BBDD.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El producto no existe en la BBDD.");
         }
+        Product existProduct = productOptional.get();
+        if ((!newProduct.getDescription().isBlank()) && (!existProduct.getDescription().equals(newProduct.getDescription()))) {
+            existProduct.setDescription(newProduct.getDescription());
+        }
+        if((newProduct.getStock() != null) && (newProduct.getStock() > 0) && (!existProduct.getStock().equals(newProduct.getStock()))) {
+            existProduct.setStock(newProduct.getStock());
+        }
+        if((newProduct.getPrice() != null) && (newProduct.getPrice() > 0) && !existProduct.getPrice().equals(newProduct.getPrice())) {
+            existProduct.setPrice(newProduct.getPrice());
+        }
+        log.info(GlobalValidator.getMethodName() + " -> Se actualizo datos del producto " + newProduct.getDescription() + " con id: " + id);
+        return(this.productRepository.saveAndFlush(existProduct));
     }
 
-    public Boolean deleteProductById(Long id) throws Exception {
-        Boolean deleteProduct = false;
-        if(id <= 0) { throw new Exception("upgradeProductById -> El id del producto no existe en la BBDD."); }
+    public void deleteProductById(Long id) throws IllegalArgumentException {
+        if(id <= 0) { throw new IllegalArgumentException(GlobalValidator.getMethodName() + " ->   El id del producto no existe en la BBDD."); }
         Optional<Product> productsOptional = this.productRepository.findById(id);
         if(productsOptional.isEmpty()) {
-            log.info("upgradeProductById -> El id" + id + " del producto no existe en la BBDD.");
-        }else {
-            Product existProduct = productsOptional.get();
-            log.info("upgradeProductById -> El producto con Id: " + existProduct.getId() + " descripcion: " +
-                    existProduct.getDescription() + " codigo: " + existProduct.getCode() + " fue borrado de la BBDD.");
-            this.productRepository.delete(existProduct);
-            deleteProduct = true;
+            log.info(GlobalValidator.getMethodName() + " -> El id " + id + " del producto no existe en la BBDD.");
+            throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El id " + id + " del producto no existe en la BBDD.");
         }
-        return (deleteProduct);
+        Product existsProduct = productsOptional.get();
+        log.info(GlobalValidator.getMethodName() + " -> El producto con Id: " + existsProduct.getId() + " descripcion: " +
+                existsProduct.getDescription() + " codigo: " + existsProduct.getCode() + " fue borrado de la BBDD.");
+        this.productRepository.delete(existsProduct);
     }
 }

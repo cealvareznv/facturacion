@@ -13,14 +13,15 @@ INSERT INTO clients(name,lastname,docnumber,deleted) VALUES ('FRANCISCA','GORZET
 --Datos a ingresar a la tabla productos
 INSERT INTO products(description,code,stock,price) VALUES ('Mate Acero Termico + Bombilla Inoxidable','K10001',10,8250.00);
 INSERT INTO products(description,code,stock,price) VALUES ('Mate Imperial Uruguayo','M20001',10,10080.00);
-INSERT INTO products(description,code,stock,price) VALUES ('Mate De Vidrio','M20003',10,2850.00);
-INSERT INTO products(description,code,stock,price) VALUES ('Mate Calabaza Y Cuero','M20004',20,2000.00);
+INSERT INTO products(description,code,stock,price) VALUES ('Mate De Vidrio','M20002',10,2850.00);
+INSERT INTO products(description,code,stock,price) VALUES ('Mate Calabaza Y Cuero','M20003',20,2000.00);
 INSERT INTO products(description,code,stock,price) VALUES ('Bombilla Acero Inoxidable','B30001',10,2700.00);
 INSERT INTO products(description,code,stock,price) VALUES ('Bombilla Alpaca Pico De Loro','B30002',20,2200.00);
 INSERT INTO products(description,code,stock,price) VALUES ('Termo Acero Con Manija 1L','T40001',10,10560.00);
 INSERT INTO products(description,code,stock,price) VALUES ('Termo Journey 1L Tapon Cebador','T40002',10,15800.00);
 INSERT INTO products(description,code,stock,price) VALUES ('Set Matero Kit Completo Termo 1L','K10002',5,12000.00);
 INSERT INTO products(description,code,stock,price) VALUES ('Mochila Matera Bolso Porta Notebook','K10003',5,28500.00);
+INSERT INTO products(description,code,stock,price) VALUES ('Mate Acero Termico','M20004',20,3400.00);
 
 --Datos a ingresar a la tabla invoice
 INSERT INTO invoice(client_id,created_at,total) VALUES (5,TIMESTAMP'2023-02-15 15:23:00',36750.00);

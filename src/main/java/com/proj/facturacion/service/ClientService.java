@@ -1,6 +1,5 @@
 package com.proj.facturacion.service;
 
-import com.proj.facturacion.exception.HandleValidationExceptions;
 import com.proj.facturacion.model.Client;
 import com.proj.facturacion.model.ClientDTO;
 import com.proj.facturacion.repository.ClientRepository;
@@ -107,8 +106,8 @@ public class ClientService {
             log.error(GlobalValidator.getMethodName() + " -> El id: " + id + " del cliente no existe en la BBDD.");
             throw new IllegalArgumentException(GlobalValidator.getMethodName() + " -> El id" + id + " del cliente no existe en la BBDD.");
         }
-        Client existClient = clientOptional.get();
-        log.info(GlobalValidator.getMethodName() + " -> El cliente con id: " + existClient.getId() + " y dni: " + existClient.getDni() +" fue borrado de la BBDD.");
+        Client existsClient = clientOptional.get();
+        log.info(GlobalValidator.getMethodName() + " -> El cliente con id: " + existsClient.getId() + " y dni: " + existsClient.getDni() +" fue borrado de la BBDD.");
         this.clientRepository.deleteById(id);
     }
 }

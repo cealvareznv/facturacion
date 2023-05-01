@@ -1,7 +1,9 @@
 package com.proj.facturacion.controller;
 
 import com.proj.facturacion.model.Product;
+import com.proj.facturacion.model.ProductDTO;
 import com.proj.facturacion.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +18,7 @@ public class ProductsController {
     public ProductService productService;
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<Product> findById(@PathVariable Long id) throws Exception{
+    public ResponseEntity<Product> findById(@PathVariable Long id) {
         return (new ResponseEntity<>(this.productService.getProductById(id), HttpStatus.OK));
     }
 
@@ -26,17 +28,17 @@ public class ProductsController {
     }
 
     @PostMapping(path = "/")
-    public ResponseEntity<Product> saveNewProducts(@RequestBody Product product) throws Exception {
+    public ResponseEntity<Product> saveNewProducts(@Valid @RequestBody Product product) {
         return(new ResponseEntity<>(this.productService.saveNewProduct(product), HttpStatus.OK));
     }
 
     @PutMapping(path = "/{id}")
-    public ResponseEntity<Product> updateProductsById(@RequestBody Product product, @PathVariable Long id) throws Exception {
+    public ResponseEntity<Product> updateProductsById(@RequestBody Product product, @PathVariable Long id) {
         return (new ResponseEntity<>(this.productService.upgradeProductById(product,id), HttpStatus.OK));
     }
 
     @DeleteMapping(path = "/{id}")
-    public Boolean deleteProductById(@PathVariable Long id) throws Exception {
-        return (this.productService.deleteProductById(id));
+    public void deleteProductById(@PathVariable Long id) {
+        this.productService.deleteProductById(id);
     }
 }

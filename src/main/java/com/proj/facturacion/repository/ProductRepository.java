@@ -13,10 +13,6 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product,Long> {
     Optional<Product> findByCode(String code);
     Optional<Product> findByIdAndCode(Long id, String code);
-    @Query(value = "SELECT price FROM products WHERE id = ?", nativeQuery = true)
-    Double getPriceById(Long id);
-    @Query(value = "SELECT stock FROM products WHERE id = ?", nativeQuery = true)
-    Integer getStockById(Long id);
     @Modifying
     @Transactional
     @Query(value = "UPDATE products SET stock = ? WHERE id = ?", nativeQuery = true)
